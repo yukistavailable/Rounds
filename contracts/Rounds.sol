@@ -13,34 +13,125 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 
-contract Rounds is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721BurnableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+    using StringsUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter private _tokenIdCounter;
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() initializer {}
+    // The duration of minting the next generation
+    uint256 public duration;
 
-    function initialize() initializer public {
+    // The last time the first generation was minted
+    uint256 public lastMintedTime;
+
+    // The number of generations
+    uint256 public maxGenNum;
+
+    // The number of tokens minted as the 1st generation
+    uint256 public tokenNumOfFirstGen;
+
+    // The current token generation
+    uint256 public currentGen;
+
+    // The current token version
+    uint256 public currentVersion;
+
+    // The amount of minted generations;
+    uint256 public genAmount;
+
+    // The Rounds DAO address;
+    address public roundsDAO;
+
+    // An address who has permissions to mint Rounds
+    address public minter;
+
+    // Mapping for tokenURIs
+    mapping (uint256 => string) private _versionURIs;
+
+    // Mapping for version and tokenId
+    mapping (uint256 => uint256) private _tokenIdVersion;
+
+    // Mapping for version and generation
+    mapping (uint256 => uint256) private _tokenIdGen;
+
+    event MinterUpdated(address minter);
+
+    /**
+     * @notice Require that the sender is the minter.
+     */
+    modifier onlyMinter() {
+        require(msg.sender == minter, 'Sender is not the minter');
+        _;
+    }
+
+    /*
+    * @notice Initialize the NFT contract.
+    * @dev This function can only be called once.
+    */
+    function initialize(address _roundsDAO, address _minter, uint256 _duration, uint256 _tokenNum) initializer public {
         __ERC721_init("Rounds", "ROS");
-        __ERC721URIStorage_init();
         __ERC721Burnable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
+        roundsDAO = _roundsDAO;
+        minter = _minter;
+        currentGen = maxGenNum;
+        currentVersion = 0;
+        duration = _duration;
+        lastMintedTime = 0;
+        tokenNumOfFirstGen = _tokenNum;
     }
 
-    function safeMint(address to, string memory uri) public onlyOwner {
+    /*
+    * @notice Mint 1st generation tokens.
+    */
+    function mintFirstGen(string memory uri) public onlyMinter {
+        // Can mint after all generations of the former version are claimed
+        require(lastMintedTime + duration * maxGenNum < block.timestamp, "Cannot mint yet");
+
+        // Back to the first generation
+        currentGen = 1;
+
+        // Increment version
+        currentVersion++;
+
+        // Set URI
+        _versionURIs[currentVersion] = uri;
+
+        // Mint tokens
+        for (uint8 i=0;i<tokenNumOfFirstGen;i++) {
+            uint256 tokenId = _tokenIdCounter.current();
+            _tokenIdCounter.increment();
+            _safeMint(roundsDAO, tokenId);
+            _tokenIdVersion[tokenId] = currentVersion;
+            _tokenIdGen[tokenId] = currentGen;
+        }
+    }
+
+    /*
+    * @notice Mint a next generation token.
+    */
+    function claimNextGeneration(uint256 _tokenId) public {
+        uint256 version = _tokenIdVersion[_tokenId];
+        uint256 gen = _tokenIdGen[_tokenId];
+
+        require(ownerOf(_tokenId) == _msgSender(), "Only token owner can mint");
+        require(version == currentVersion, "Version is out of time");
+        require(lastMintedTime + gen * duration < block.timestamp && block.timestamp < lastMintedTime + (gen + 1) * duration, "Generation is out of time");
+
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+        _safeMint(_msgSender(), tokenId);
+        _tokenIdVersion[tokenId] = currentVersion;
+        _tokenIdGen[tokenId] = gen + 1;
     }
 
     /**
@@ -51,16 +142,87 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable
 
     /*
     * @notice Burn a token.
-    * @dev Override _burn in order to execute _burn of ERC721URIStorageUpgradeable before one of ERC721Upgradeable.
     */
-    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+    function _burn(uint256 tokenId) internal override(ERC721Upgradeable) {
         super._burn(tokenId);
     }
 
     /*
     * @notice URI for a token.
     */
-    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
-        return super.tokenURI(tokenId);
+    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable) returns (string memory) {
+        uint256 version = _tokenIdVersion[tokenId];
+        uint256 gen = _tokenIdGen[tokenId];
+        string memory imageURI = string(abi.encodePacked(_versionURIs[version], "/", gen.toString()));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Rounds #', version.toString(), '-', gen.toString(),  '", "description": "Rounds DAO NFT", "image": "', imageURI, '"}'))));
+        json = string(abi.encodePacked('data:application/json;base64,', json));
+        return json;
+    }
+
+    /**
+     * @notice Set the token minter.
+     * @dev Only callable by the owner.
+     */
+    function setMinter(address _minter) public onlyOwner {
+        minter = _minter;
+
+        emit MinterUpdated(_minter);
+    }
+}
+
+library Base64 {
+    bytes internal constant TABLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    /// @notice Encodes some bytes to the base64 representation
+    function encode(bytes memory data) internal pure returns (string memory) {
+        uint256 len = data.length;
+        if (len == 0) return "";
+
+        // multiply by 4/3 rounded up
+        uint256 encodedLen = 4 * ((len + 2) / 3);
+
+        // Add some extra buffer at the end
+        bytes memory result = new bytes(encodedLen + 32);
+
+        bytes memory table = TABLE;
+
+        assembly {
+            let tablePtr := add(table, 1)
+            let resultPtr := add(result, 32)
+
+            for {
+                let i := 0
+            } lt(i, len) {
+
+            } {
+                i := add(i, 3)
+                let input := and(mload(add(data, i)), 0xffffff)
+
+                let out := mload(add(tablePtr, and(shr(18, input), 0x3F)))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(shr(12, input), 0x3F))), 0xFF))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(shr(6, input), 0x3F))), 0xFF))
+                out := shl(8, out)
+                out := add(out, and(mload(add(tablePtr, and(input, 0x3F))), 0xFF))
+                out := shl(224, out)
+
+                mstore(resultPtr, out)
+
+                resultPtr := add(resultPtr, 4)
+            }
+
+            switch mod(len, 3)
+            case 1 {
+                mstore(sub(resultPtr, 2), shl(240, 0x3d3d))
+            }
+            case 2 {
+                mstore(sub(resultPtr, 1), shl(248, 0x3d))
+            }
+
+            mstore(result, encodedLen)
+        }
+
+        return string(result);
     }
 }

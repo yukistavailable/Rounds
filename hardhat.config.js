@@ -15,11 +15,11 @@ module.exports = {
     hardhat: {
     },
     mumbai: {
-      url: moralisMumbai,
+      url: polygonMumbai,
       accounts: [privateKey]
     },
     mainnet: {
-      url: moralisMainnet,
+      url: polygonMainnet,
       accounts: [privateKey]
     },
   },
