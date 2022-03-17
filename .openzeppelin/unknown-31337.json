@@ -3,14 +3,19 @@
   "proxies": [
     {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x7da033042f76d7357cf8b596eaa73da345303f744d5b56dc3b30ce03eea3cf23",
+      "txHash": "0xc07a873f754e194cce99c66a22a7e432c56f49c10f82e4803dd303af52689cfa",
+      "kind": "uups"
+    },
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0x7f171c22f50adbb93082fbe0ccfae41ec61100d045c2e2d7de50493f742397df",
       "kind": "uups"
     }
   ],
   "impls": {
-    "0f070ccf5cfe21e8c7fbe38dca7698c874dd3748cb18eb1dacdb3490fcd8f359": {
+    "9333eeee8c15a6d8d7fb1c742f5da4ca354a3fd85a2d5fe754afde96aa3220ea": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0xa488f6109249db47d785e087c1e8e295768242e629c0001af11028b64c2f4fe3",
+      "txHash": "0x1672e5501b395a3d790ea5f56e350204822a6d587d5ebdcccf3709166b0dfe30",
       "layout": {
         "storage": [
           {
@@ -163,7 +168,7 @@
             "slot": "353",
             "type": "t_uint256",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:45"
+            "src": "contracts/Rounds.sol:44"
           },
           {
             "label": "maxGenNum",
@@ -182,7 +187,7 @@
             "src": "contracts/Rounds.sol:51"
           },
           {
-            "label": "currentGen",
+            "label": "currentVersion",
             "offset": 0,
             "slot": "356",
             "type": "t_uint256",
@@ -190,7 +195,7 @@
             "src": "contracts/Rounds.sol:54"
           },
           {
-            "label": "currentVersion",
+            "label": "genAmount",
             "offset": 0,
             "slot": "357",
             "type": "t_uint256",
@@ -198,52 +203,52 @@
             "src": "contracts/Rounds.sol:57"
           },
           {
-            "label": "genAmount",
-            "offset": 0,
-            "slot": "358",
-            "type": "t_uint256",
-            "contract": "Rounds",
-            "src": "contracts/Rounds.sol:60"
-          },
-          {
             "label": "roundsDAO",
             "offset": 0,
-            "slot": "359",
+            "slot": "358",
             "type": "t_address",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:62"
+            "src": "contracts/Rounds.sol:59"
           },
           {
             "label": "minter",
             "offset": 0,
-            "slot": "360",
+            "slot": "359",
             "type": "t_address",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:63"
+            "src": "contracts/Rounds.sol:60"
           },
           {
             "label": "_versionURIs",
             "offset": 0,
-            "slot": "361",
+            "slot": "360",
             "type": "t_mapping(t_uint256,t_string_storage)",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:67"
+            "src": "contracts/Rounds.sol:63"
           },
           {
             "label": "_tokenIdVersion",
             "offset": 0,
-            "slot": "362",
+            "slot": "361",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:71"
+            "src": "contracts/Rounds.sol:66"
           },
           {
             "label": "_tokenIdGen",
             "offset": 0,
-            "slot": "363",
+            "slot": "362",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "Rounds",
-            "src": "contracts/Rounds.sol:76"
+            "src": "contracts/Rounds.sol:69"
+          },
+          {
+            "label": "_isTokenClaimed",
+            "offset": 0,
+            "slot": "363",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "Rounds",
+            "src": "contracts/Rounds.sol:74"
           }
         ],
         "types": {
@@ -273,6 +278,9 @@
           },
           "t_mapping(t_uint256,t_address)": {
             "label": "mapping(uint256 => address)"
+          },
+          "t_mapping(t_uint256,t_bool)": {
+            "label": "mapping(uint256 => bool)"
           },
           "t_mapping(t_uint256,t_string_storage)": {
             "label": "mapping(uint256 => string)"

@@ -38,9 +38,6 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
     // The number of tokens minted as the 1st generation
     uint256 public tokenNumOfFirstGen;
 
-    // The current token generation
-    uint256 public currentGen;
-
     // The current token version
     uint256 public currentVersion;
 
@@ -62,13 +59,20 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
     // Mapping for version and generation
     mapping (uint256 => uint256) private _tokenIdGen;
 
+    // Mapping for claimed tokens
+    mapping (uint256 => bool) private _isTokenClaimed;
+
+    // event
+    event MintFirstGen(address minter, address to, uint256 version, uint256 tokenNum);
+
+    // event
     event MinterUpdated(address minter);
 
     /**
      * @notice Require that the sender is the minter.
      */
     modifier onlyMinter() {
-        require(msg.sender == minter, 'Sender is not the minter');
+        require(_msgSender() == minter, 'Sender is not the minter');
         _;
     }
 
@@ -81,13 +85,14 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         __ERC721Burnable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
+        maxGenNum = 4;
         roundsDAO = _roundsDAO;
         minter = _minter;
-        currentGen = maxGenNum;
         currentVersion = 0;
         duration = _duration;
         lastMintedTime = 0;
         tokenNumOfFirstGen = _tokenNum;
+        _tokenIdCounter.increment();
     }
 
     /*
@@ -97,8 +102,8 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         // Can mint after all generations of the former version are claimed
         require(lastMintedTime + duration * maxGenNum < block.timestamp, "Cannot mint yet");
 
-        // Back to the first generation
-        currentGen = 1;
+        // Update lastMintedTime
+        lastMintedTime = block.timestamp;
 
         // Increment version
         currentVersion++;
@@ -112,8 +117,10 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
             _tokenIdCounter.increment();
             _safeMint(roundsDAO, tokenId);
             _tokenIdVersion[tokenId] = currentVersion;
-            _tokenIdGen[tokenId] = currentGen;
+            _tokenIdGen[tokenId] = 1;
         }
+
+        emit MintFirstGen(_msgSender(), roundsDAO, currentVersion, tokenNumOfFirstGen);
     }
 
     /*
@@ -125,12 +132,21 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
 
         require(ownerOf(_tokenId) == _msgSender(), "Only token owner can mint");
         require(version == currentVersion, "Version is out of time");
-        require(lastMintedTime + gen * duration < block.timestamp && block.timestamp < lastMintedTime + (gen + 1) * duration, "Generation is out of time");
+        require(lastMintedTime + gen * duration <= block.timestamp && block.timestamp < lastMintedTime + (gen + 1) * duration, "Generation is out of time");
+        require(!_isTokenClaimed[_tokenId], "The token has already been claimed");
 
+        // Checked the token as claimed
+        _isTokenClaimed[_tokenId] = true;
+
+        // Mint the next generation token
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(_msgSender(), tokenId);
+
+        // Set version
         _tokenIdVersion[tokenId] = currentVersion;
+
+        // Set generation
         _tokenIdGen[tokenId] = gen + 1;
     }
 
