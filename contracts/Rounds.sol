@@ -112,7 +112,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         _versionURIs[currentVersion] = uri;
 
         // Mint tokens
-        for (uint8 i=0;i<tokenNumOfFirstGen;i++) {
+        for (uint256 i=0;i<tokenNumOfFirstGen;i++) {
             uint256 tokenId = _tokenIdCounter.current();
             _tokenIdCounter.increment();
             _safeMint(roundsDAO, tokenId);
