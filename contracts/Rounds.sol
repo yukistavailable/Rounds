@@ -41,9 +41,6 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
     // The current token version
     uint256 public currentVersion;
 
-    // The amount of minted generations;
-    uint256 public genAmount;
-
     // The Rounds DAO address;
     address public roundsDAO;
 
@@ -67,6 +64,9 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
 
     // event
     event MinterUpdated(address minter);
+
+    // event
+    event DAOUpdated(address DAO);
 
     /**
      * @notice Require that the sender is the minter.
@@ -184,6 +184,16 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         minter = _minter;
 
         emit MinterUpdated(_minter);
+    }
+
+    /**
+     * @notice Set the DAO address.
+     * @dev Only callable by the owner.
+     */
+    function setMinter(address _roundsDAO) public onlyOwner {
+        roundsDAO = _roundsDAO;
+
+        emit DAOUpdated(roundsDAO);
     }
 }
 
