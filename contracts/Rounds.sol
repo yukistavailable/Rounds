@@ -131,6 +131,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         uint256 gen = _tokenIdGen[_tokenId];
 
         require(ownerOf(_tokenId) == _msgSender(), "Only token owner can mint");
+        require(gen < maxGenNum, "Gen is bigger than maxGenNum");
         require(version == currentVersion, "Version is out of time");
         require(lastMintedTime + gen * duration <= block.timestamp && block.timestamp < lastMintedTime + (gen + 1) * duration, "Generation is out of time");
         require(!_isTokenClaimed[_tokenId], "The token has already been claimed");
