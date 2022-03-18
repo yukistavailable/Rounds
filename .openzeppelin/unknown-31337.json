@@ -3,19 +3,24 @@
   "proxies": [
     {
       "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "txHash": "0x288c3caa64e2b5514896079e81d5e9614d305ef1e21a2910582f47b05aa7e599",
+      "txHash": "0xa186c782e94cc81a39c24c722c563ebd93c7d0a96d79428acb7b2de4edc443c4",
       "kind": "uups"
     },
     {
       "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "txHash": "0x8cfcfae515f19ff04e46fd75bec6990d9fb1506aef9bb3ec6e451f751160f7ed",
+      "txHash": "0xe4fecd11aa62f34e067b645db14796a94da8b455d622be666dd8060e09de2093",
+      "kind": "uups"
+    },
+    {
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "txHash": "0xc34b6e7d803a2da2bc55281a1d1a1d80c9015d5b59dd40a256569111a68f6093",
       "kind": "uups"
     }
   ],
   "impls": {
-    "db0a1ec28c1e3280a0bccb68147cab67b8da1ee12e6a7ac1616f66616575d897": {
+    "39859b39252bdf6dc93385d7c30627bcbfcf56e47e7a8b1900ebf99d7e04fdf5": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0x7d8540d670d4972c33e3055845e4633fceee9425691c89a97da9133462310083",
+      "txHash": "0x730a6e1ccdc13f1bc60fbb443e77737393f427466d6c675809d6886f4d08826f",
       "layout": {
         "storage": [
           {
@@ -171,7 +176,7 @@
             "src": "contracts/Rounds.sol:44"
           },
           {
-            "label": "maxGenNum",
+            "label": "lastGenNum",
             "offset": 0,
             "slot": "354",
             "type": "t_uint256",

@@ -33,7 +33,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
     uint256 public lastMintedTime;
 
     // The number of generations
-    uint256 public maxGenNum;
+    uint256 public lastGenNum;
 
     // The number of tokens minted as the 1st generation
     uint256 public tokenNumOfFirstGen;
@@ -85,7 +85,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         __ERC721Burnable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
-        maxGenNum = 4;
+        lastGenNum = 4;
         roundsDAO = _roundsDAO;
         minter = _minter;
         currentVersion = 0;
@@ -100,7 +100,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
     */
     function mintFirstGen(string memory uri) public onlyMinter {
         // Can mint after all generations of the former version are claimed
-        require(lastMintedTime + duration * maxGenNum < block.timestamp, "Cannot mint yet");
+        require(lastMintedTime + duration * lastGenNum < block.timestamp, "Cannot mint yet");
 
         // Update lastMintedTime
         lastMintedTime = block.timestamp;
@@ -131,7 +131,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
         uint256 gen = _tokenIdGen[_tokenId];
 
         require(ownerOf(_tokenId) == _msgSender(), "Only token owner can mint");
-        require(gen < maxGenNum, "Gen is bigger than maxGenNum");
+        require(gen < lastGenNum, "The token is the last generation");
         require(version == currentVersion, "Version is out of time");
         require(lastMintedTime + gen * duration <= block.timestamp && block.timestamp < lastMintedTime + (gen + 1) * duration, "Generation is out of time");
         require(!_isTokenClaimed[_tokenId], "The token has already been claimed");
