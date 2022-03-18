@@ -190,7 +190,7 @@ contract Rounds is Initializable, ERC721Upgradeable, ERC721BurnableUpgradeable, 
      * @notice Set the DAO address.
      * @dev Only callable by the owner.
      */
-    function setMinter(address _roundsDAO) public onlyOwner {
+    function setDAO(address _roundsDAO) public onlyOwner {
         roundsDAO = _roundsDAO;
 
         emit DAOUpdated(roundsDAO);
